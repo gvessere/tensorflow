@@ -285,7 +285,6 @@ def _fused_batch_norm(
     ValueError: If the rank of `inputs` is neither 2 or 4.
     ValueError: If rank or `C` dimension of `inputs` is undefined.
   """
-  # TODO(reedwm): Add support for fp16 inputs.
   if data_format not in (DATA_FORMAT_NCHW, DATA_FORMAT_NHWC):
     raise ValueError('data_format has to be either NCHW or NHWC.')
   with variable_scope.variable_scope(
@@ -319,9 +318,10 @@ def _fused_batch_norm(
                        (inputs.name, params_shape))
 
     # Allocate parameters for the beta and gamma of the normalization.
-    trainable_beta = trainable and center
     beta_collections = utils.get_variable_collections(variables_collections,
                                                       'beta')
+    # Float32 required to avoid precision-loss when using fp16 input/output
+    variable_dtype = dtypes.float32
     if not param_initializers:
       param_initializers = {}
     if center:
@@ -330,12 +330,12 @@ def _fused_batch_norm(
       beta = variables.model_variable(
           'beta',
           shape=params_shape,
-          dtype=dtype,
+          dtype=variable_dtype,
           initializer=beta_initializer,
           collections=beta_collections,
-          trainable=trainable_beta)
+          trainable=trainable)
     else:
-      beta = array_ops.constant(0.0, shape=params_shape)
+      beta = array_ops.constant(0.0, dtype=variable_dtype, shape=params_shape)
 
     if scale:
       gamma_collections = utils.get_variable_collections(
@@ -345,12 +345,12 @@ def _fused_batch_norm(
       gamma = variables.model_variable(
           'gamma',
           shape=params_shape,
-          dtype=dtype,
+          dtype=variable_dtype,
           initializer=gamma_initializer,
           collections=gamma_collections,
           trainable=trainable)
     else:
-      gamma = array_ops.constant(1.0, shape=params_shape)
+      gamma = array_ops.constant(1.0, dtype=variable_dtype, shape=params_shape)
 
     # Create moving_mean and moving_variance variables and add them to the
     # appropriate collections. We disable variable partitioning while creating
@@ -367,7 +367,7 @@ def _fused_batch_norm(
       moving_mean = variables.model_variable(
           'moving_mean',
           shape=params_shape,
-          dtype=dtype,
+          dtype=variable_dtype,
           initializer=moving_mean_initializer,
           trainable=False,
           collections=moving_mean_collections)
@@ -378,7 +378,7 @@ def _fused_batch_norm(
       moving_variance = variables.model_variable(
           'moving_variance',
           shape=params_shape,
-          dtype=dtype,
+          dtype=variable_dtype,
           initializer=moving_variance_initializer,
           trainable=False,
           collections=moving_variance_collections)
