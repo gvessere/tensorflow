@@ -163,6 +163,7 @@ CORE_PROTO_SRCS = [
     "framework/function.proto",
     "framework/graph.proto",
     "framework/graph_transfer_info.proto",
+    "framework/iterator.proto",
     "framework/kernel_def.proto",
     "framework/log_memory.proto",
     "framework/node_def.proto",
@@ -246,6 +247,14 @@ tf_proto_library(
     cc_api_version = 2,
     protodeps = tf_additional_all_protos(),
     visibility = ["//visibility:public"],
+)
+
+# Minimal lib to detect plafrom
+cc_library(
+    name = "lib_platform",
+    hdrs = [
+        "platform/platform.h",
+    ],
 )
 
 # Minimal lib so that tools used for mobile compilation
@@ -1405,16 +1414,19 @@ LIB_INTERNAL_PUBLIC_HEADERS = tf_additional_lib_hdrs() + [
     "platform/tracing.h",
 ]
 
+# Replicated for lib_internal and lib_internal_impl.
+LIB_INTERNAL_DEFINES = (tf_additional_lib_defines() + [
+                            "TF_USE_SNAPPY",
+                        ] + tf_additional_verbs_lib_defines() +
+                        tf_additional_mpi_lib_defines() +
+                        tf_additional_gdr_lib_defines())
+
 cc_library(
     name = "lib_internal",
     srcs = LIB_INTERNAL_PRIVATE_HEADERS,
     hdrs = LIB_INTERNAL_PUBLIC_HEADERS,
     copts = tf_copts(),
-    defines = tf_additional_lib_defines() + [
-                  "TF_USE_SNAPPY",
-              ] + tf_additional_verbs_lib_defines() +
-              tf_additional_mpi_lib_defines() +
-              tf_additional_gdr_lib_defines(),
+    defines = LIB_INTERNAL_DEFINES,
     linkopts = select({
         "//tensorflow:freebsd": [],
         "//tensorflow:windows": [],
@@ -1468,6 +1480,7 @@ cc_library(
     ),
     hdrs = LIB_INTERNAL_PUBLIC_HEADERS,
     copts = tf_copts(),
+    defines = LIB_INTERNAL_DEFINES,
     deps = tf_additional_lib_deps() + [
         ":lib_hash_crc32c_accelerate_internal",
         ":lib_proto_parsing",
@@ -2697,6 +2710,7 @@ tf_cc_test_mkl(
     srcs = [
         "graph/mkl_layout_pass_test.cc",
         "graph/mkl_tfconversion_pass_test.cc",
+        "util/mkl_util_test.cc",
     ],
     linkstatic = 1,
     deps = [

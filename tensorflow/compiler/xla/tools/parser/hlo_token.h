@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_COMPILER_XLA_TOOLS_PARSER_HLO_TOKEN_H_
 #define TENSORFLOW_COMPILER_XLA_TOOLS_PARSER_HLO_TOKEN_H_
 
+#include <string>
+
 namespace xla {
 namespace tools {
 
@@ -36,21 +38,32 @@ enum class TokKind {
   kLparen,
   kRparen,  // (  )
 
-  kArrow,  // ->
+  kArrow,    // ->
+  kComment,  // /*xxx*/
 
   // Keywords
   kw_HloModule,
   kw_ENTRY,
+  kw_ROOT,
   kw_true,
   kw_false,
+  kw_maximal,
+  kw_replicated,
+  kw_nan,
+  kw_inf,
+
+  kNegInf,  // -inf
 
   // Typed tokens.
-  kName,     // %foo
-  kShape,    // f32[2,3]{1,0}
-  kOpcode,   // add
-  kInt,      // 42
-  kDecimal,  // 4.2
+  kName,           // %foo
+  kAttributeName,  // dimensions=
+  kShape,          // f32[2,3]{1,0}
+  kOpcode,         // add
+  kInt,            // 42
+  kDecimal,        // 4.2
 };
+
+string TokKindToString(TokKind kind);
 
 }  // namespace tools
 }  // namespace xla
