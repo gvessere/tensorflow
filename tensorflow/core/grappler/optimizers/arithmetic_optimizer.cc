@@ -63,7 +63,7 @@ bool SafeSetTensorValue(double value, Tensor* tensor) {
 
 Status SetTensorValue(DataType dtype, int value, Tensor* tensor) {
   switch (dtype) {
-    //    HANDLE_CASE(DT_HALF);
+    HANDLE_CASE(DT_HALF);
     HANDLE_CASE(DT_FLOAT);
     HANDLE_CASE(DT_DOUBLE);
     HANDLE_CASE(DT_UINT8);
