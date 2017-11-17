@@ -167,7 +167,7 @@ inline Status UnchangedShapeWithRank(shape_inference::InferenceContext* c,
   c->set_output(0, out);
   return Status::OK();
 }
-
+Status DepthwiseConv3DNativeShape(shape_inference::InferenceContext* c);
 // Transfers shape of input(0) to output(0), after asserting its rank >= <rank>.
 inline Status UnchangedShapeWithRankAtLeast(
     shape_inference::InferenceContext* c, int32 rank) {
